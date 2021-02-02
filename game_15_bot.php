@@ -17,24 +17,24 @@ function trequest($method, $inputarray) {
 }
 
 // get user from db
-function select_user($dblink, $chat_id) {
-	$query_usr = "select * from game_15 where chat_id='".$chat_id."'";
+function select_user($dblink, $tbl_name, $chat_id) {
+	$query_usr = "select * from ".$tbl_name." where chat_id='".$chat_id."'";
 	$result_usr = mysqli_query($dblink, $query_usr);
     return $result_usr;
 }
 
 // update user game in db
-function update_game($dblink, $chat_id, $tiles) {
+function update_game($dblink, $tbl_name, $chat_id, $tiles) {
 	$nline = json_encode($tiles, JSON_UNESCAPED_UNICODE);
-	$query_usr = "update game_15 set 
+	$query_usr = "update ".$tbl_name." set 
 		nline='".$nline."' 
 		where chat_id='".$chat_id."'";
 	$result_usr = mysqli_query($dblink, $query_usr);
 }
 
 // update kbd_id in db to delete then
-function update_kbd_id($dblink, $chat_id, $kbd_id) {
-	$query_usr = "update game_15 set 
+function update_kbd_id($dblink, $tbl_name, $chat_id, $kbd_id) {
+	$query_usr = "update ".$tbl_name." set 
 		kbd_id='".$kbd_id."' 
 		where chat_id='".$chat_id."'";
 	$result_usr = mysqli_query($dblink, $query_usr);
@@ -78,11 +78,11 @@ if (($input['message']) != null) {
 	$user_lang = $input['message']['from']['language_code'];
 	$user_msg = trim($input['message']['text']);
 
-	$result_usr = select_user($dblink, $chat_id);
+	$result_usr = select_user($dblink, $tbl_name, $chat_id);
 	// user new -> insert to db
 	if (mysqli_num_rows($result_usr) <= 0) {
 		$user_lang = (array_key_exists($user_lang, $lang)) ? $user_lang : 'ru';
-		$query_ins = "insert into game_15 (chat_id, user_lang, user_name) values ('".$chat_id."', '".$user_lang."', 
+		$query_ins = "insert into ".$tbl_name." (chat_id, user_lang, user_name) values ('".$chat_id."', '".$user_lang."', 
 			'".$input['message']['from']['first_name']." ".$input['message']['from']['last_name']."')";
 		$result_ins = mysqli_query($dblink, $query_ins);
 		$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['hi1'].$input['message']['from']['first_name'].$lang[$user_lang]['hi2'], 
@@ -110,7 +110,7 @@ if (($input['message']) != null) {
 			case '🇬🇧 en': case '🇷🇺 ru': {
 				$l = explode(' ', $user_msg);
 				$user_lang = $l[1];
-				$query_lng = "update game_15 set user_lang='".$user_lang."' where chat_id='".$chat_id."'";
+				$query_lng = "update ".$tbl_name." set user_lang='".$user_lang."' where chat_id='".$chat_id."'";
 				$result_lng = mysqli_query($dblink, $query_lng);
 				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['lang_ok'],
 					'reply_markup' => json_encode(['keyboard' => kbd_set($lang[$user_lang]), 'resize_keyboard' => true])]);
@@ -163,14 +163,14 @@ if (($input['message']) != null) {
 				if ($sum_parity % 2 != 0)
 					if ($pos_max < 2) { list($tiles[$pos_max+1], $tiles[$pos_max+2]) = array($tiles[$pos_max+2], $tiles[$pos_max+1]); }
 					else { list($tiles[0], $tiles[1]) = array($tiles[1], $tiles[0]); }
-				update_game($dblink, $chat_id, $tiles);
+				update_game($dblink, $tbl_name, $chat_id, $tiles);
 
 				// redraw game keyboard
 				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['game_started'].$tsize.'x'.$tsize,
 					'reply_markup' => json_encode(['inline_keyboard' => draw_tiles($tiles)])]);
 				$tresponse = json_decode($answer, true);
 				$kbd_id = $tresponse['result']['message_id'];
-				update_kbd_id($dblink, $chat_id, $kbd_id);
+				update_kbd_id($dblink, $tbl_name, $chat_id, $kbd_id);
 				break;
 			}
 
@@ -189,7 +189,7 @@ if (($input['message']) != null) {
 	$answer = trequest('answerCallbackQuery', array('callback_query_id' => $cb_id));
 
 	if ($cb_data != '-') {
-		$result_usr = select_user($dblink, $chat_id);
+		$result_usr = select_user($dblink, $tbl_name, $chat_id);
 		$row = mysqli_fetch_assoc($result_usr);
 		$kbd_id = $row['kbd_id']; $user_lang = $row['user_lang'];
 		$user_lang = (array_key_exists($user_lang, $lang)) ? $user_lang : 'ru';
@@ -199,7 +199,7 @@ if (($input['message']) != null) {
 		$tiles = json_decode($row['nline'], false, 512, JSON_UNESCAPED_UNICODE);
 		$pos_space = array_search(0, $tiles);
 		list($tiles[$cb_data], $tiles[$pos_space]) = array($tiles[$pos_space], $tiles[$cb_data]);
-		update_game($dblink, $chat_id, $tiles);
+		update_game($dblink, $tbl_name, $chat_id, $tiles);
 
 		// compare with game end
 		$tsize = sqrt(count($tiles));
@@ -213,7 +213,7 @@ if (($input['message']) != null) {
 				'reply_markup' => json_encode(['inline_keyboard' => draw_tiles($tiles)])]);
 			$tresponse = json_decode($answer, true);
 			$kbd_id = $tresponse['result']['message_id'];
-			update_kbd_id($dblink, $chat_id, $kbd_id);
+			update_kbd_id($dblink, $tbl_name, $chat_id, $kbd_id);
 		} else {
 			$answer = trequest('editMessageReplyMarkup', ['chat_id' => $chat_id, 'message_id' => $kbd_id,
 				'reply_markup' => json_encode(['inline_keyboard' => draw_tiles($tiles)])]);
