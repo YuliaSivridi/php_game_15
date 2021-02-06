@@ -42,12 +42,12 @@ function update_kbd_id($dblink, $tbl_name, $chat_id, $kbd_id) {
 
 // menu keyboard -> main
 function kbd_main($lang_usrlng) {
-	return $kbd = [[$lang_usrlng['menu_new'], $lang_usrlng['menu_set']]];
+	return $kbd = [[$lang_usrlng['menu-new'], $lang_usrlng['menu-set']]];
 }
 
 // menu keyboard -> settings
 function kbd_set($lang_usrlng) {
-	return $kbd = [[$lang_usrlng['menu_main'], $lang_usrlng['menu_hlp'], $lang_usrlng['menu_lng']]];
+	return $kbd = [[$lang_usrlng['menu-main'], $lang_usrlng['menu-hlp'], $lang_usrlng['menu-lng']]];
 }
 
 // make keyboard
@@ -96,14 +96,14 @@ if (($input['message']) != null) {
 
 		switch ($user_msg) {
 			// settings menu -> help
-			case '/help': case $lang[$user_lang]['menu_hlp']: {
+			case '/help': case $lang[$user_lang]['menu-hlp']: {
 				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['help'],
 					'reply_markup' => json_encode(['keyboard' => kbd_set($lang[$user_lang]), 'resize_keyboard' => true])]);
 				break;
 			}
 			// settings menu -> language
-			case '/lang': case $lang[$user_lang]['menu_lng']: {
-				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['lang_ask'],
+			case '/lang': case $lang[$user_lang]['menu-lng']: {
+				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['lang-ask'],
 					'reply_markup' => json_encode(['keyboard' => [['🇬🇧 en', '🇷🇺 ru']], 'resize_keyboard' => true])]);
 				break;
 			}
@@ -112,29 +112,29 @@ if (($input['message']) != null) {
 				$user_lang = $l[1];
 				$query_lng = "update ".$tbl_name." set user_lang='".$user_lang."' where chat_id='".$chat_id."'";
 				$result_lng = mysqli_query($dblink, $query_lng);
-				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['lang_ok'],
+				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['lang-ok'],
 					'reply_markup' => json_encode(['keyboard' => kbd_set($lang[$user_lang]), 'resize_keyboard' => true])]);
 				break;
 			}
 
 			// main menu -> settings
-			case '/settings': case $lang[$user_lang]['menu_set']: {
-				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['set_ttl'], 
+			case '/settings': case $lang[$user_lang]['menu-set']: {
+				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['set-ttl'], 
 					'reply_markup' => json_encode(['keyboard' => kbd_set($lang[$user_lang]), 'resize_keyboard' => true])]);
 				break;
 			}
 
 			// main menu
-			case '/main': case $lang[$user_lang]['menu_main']: {
-				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['main_ttl'], 
+			case '/main': case $lang[$user_lang]['menu-main']: {
+				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['main-ttl'], 
 					'reply_markup' => json_encode(['keyboard' => kbd_main($lang[$user_lang]), 'resize_keyboard' => true])]);
 				break;
 			}
 
 			// main menu -> new game
-			case '/new': case $lang[$user_lang]['menu_new']: {
+			case '/newgame': case $lang[$user_lang]['menu-new']: {
 				$answer = trequest('sendMessage', ['chat_id' => $chat_id, 'text' => $lang[$user_lang]['new'], 
-					'reply_markup' => json_encode(['keyboard' => [[$lang[$user_lang]['menu_main'], $lang[$user_lang]['3'], $lang[$user_lang]['4']], 
+					'reply_markup' => json_encode(['keyboard' => [[$lang[$user_lang]['menu-main'], $lang[$user_lang]['3'], $lang[$user_lang]['4']], 
 						[$lang[$user_lang]['5'], $lang[$user_lang]['6'], $lang[$user_lang]['7']]], 'resize_keyboard' => true])]);
 				break;
 			}
